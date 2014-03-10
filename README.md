@@ -35,12 +35,12 @@ Usage
 
 First you have to sync the accounts you have migrated
 
-   $ ./bin/uidmatcher.pl --olduser xxx --oldserver old.xxx.yyy --oldpass=sf83j \
-     --newserver new.xxx.yyy --newuser xxx --newpass asfoilkjhasf \
-     --dbfile /opt/popruxi/uidmap.db
+    $ ./bin/uidmatcher.pl --olduser xxx --oldserver old.xxx.yyy --oldpass=sf83j \
+      --newserver new.xxx.yyy --newuser xxx --newpass asfoilkjhasf \
+      --dbfile /opt/popruxi/uidmap.db
     
 Second you can run the pop proxy server
 
-   $ ./bin/popruxy.pl --server new.xxx.yyy --dbfile /opt/popruxi/uidmap.db
+    $ ./bin/popruxy.pl --server new.xxx.yyy --dbfile /opt/popruxi/uidmap.db
 
-q
+
