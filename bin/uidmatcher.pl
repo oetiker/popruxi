@@ -139,16 +139,13 @@ sub getUidlMap {
     $dbh->begin_work;    
     for (my $id=1;$id<=$count;$id++){        
         my $uid = $uidl[$id] or next;
-        print STDERR $id," \r" if $id % 10 == 1;
+#        print STDERR $id," \r" if $id % 10 == 1;
         if ( not $uidmap->{$type}{$uid} ){
             print STDERR $uid,"\n";
             my @headers = sort grep /^(From|To|Message-Id|Subject|Date):/i, $pop->Head( $id );            
             my  $hash = hmac_sha256_hex(join '\n', @headers );
-#            if ($hash eq 'b613679a0814d9ec772f95d778c35fc5ff1697c493715653c6c712144292c5ad'){
-#            if ($hash eq '64356f3dfa2d244d3f38ee33089cf4dcf6922e8e5ae6f759c1f2ab0c2429f397'){
-                warn $hash,"\n";
-                warn Dumper [sort @headers];
-#            }
+#           warn $hash,"\n";
+#           warn Dumper [sort @headers];
             # add missing
             if ($type eq 'old'){
                 $ins->execute($opt{newuser},$uid,$hash);
