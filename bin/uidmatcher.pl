@@ -54,8 +54,11 @@ sub main()
         $uidmap{hash2freeold}{$hash}{$uid_old} = 1 if not $uid_new;
     }
 
-    print STDERR "* Load Old UIDs from POP server\n";
-    getUidlMap(\%uidmap,'old');
+    if ($opt{oldserver}){
+        print STDERR "* Load Old UIDs from POP server\n";
+        getUidlMap(\%uidmap,'old');
+    }
+
     print STDERR "* Load New UIDs from POP server\n";
     getUidlMap(\%uidmap,'new');
 
@@ -82,7 +85,7 @@ sub main()
     for my $uid_new (keys %{$uidmap{newnew}}){        
         my $hash = $uidmap{new}{$uid_new};        
         $ins->execute($uid_new,$hash,$opt{newuser});
-    }
+    } 
     $dbh->commit;
 }
 
@@ -137,16 +140,15 @@ sub getUidlMap {
 
 
     $dbh->begin_work;    
+    my %currentUid;
     for (my $id=1;$id<=$count;$id++){        
         my $uid = $uidl[$id] or next;
-#        print STDERR $id," \r" if $id % 10 == 1;
+        $currentUid{$uid} = 1;
+#       print STDERR $id," \r" if $id % 10 == 1;
         if ( not $uidmap->{$type}{$uid} ){
             print STDERR $uid,"\n";
             my @headers = sort grep /^(From|To|Message-Id|Subject|Date):/i, $pop->Head( $id );            
             my  $hash = hmac_sha256_hex(join '\n', @headers );
-#           warn $hash,"\n";
-#           warn Dumper [sort @headers];
-            # add missing
             if ($type eq 'old'){
                 $ins->execute($opt{newuser},$uid,$hash);
             }
@@ -157,6 +159,14 @@ sub getUidlMap {
             $uidmap->{$type}{$uid}=$hash;
         }
     }
+    if ($type eq 'new'){
+        print STDERR "* Cleaning uidmap database";
+        # remove uids that are no longer present on the new server
+        my $del = $dbh->prepare('DELETE FROM uidmap WHERE uid_new = ?');        
+        for my $uid (sort keys %{$uidmap->{new}}){
+            $del->execute($uid) unless $currentUid{$uid};
+        }           
+    }
     $dbh->commit;
 }
 
@@ -166,58 +176,60 @@ __END__
 
 =head1 NAME
 
-template_tool - ISGTC tool template
+uidmatcher.pl - create a database mapping uids from one pop server to another
 
 =head1 SYNOPSIS
 
-B<template_tool> [I<options>...]
+B<uidmatcher.pl> [I<options>...]
 
      --man           show man-page and exit
  -h, --help          display this help and exit
      --version       output version information and exit
+     --olduser=s     username on the old server
+     --oldpass=s     password on the old server
+     --oldserver=s   old server address
+     --newuser=s     username on the new server
+     --newpass=s     password on the new server
+     --newserver=s   new server address
+     --dbfile=s      db file to store the mapping
 
 =head1 DESCRIPTION
 
-Very useful hello-world application... With a magic marker
-##ISGTC_MAGIC_SYSCONFDIR##.
+The script builds a map between messages on two pop servers. It retrieves the UIDs from
+both server and they uses a hash built from the messages Subject,Data,To,From,Message-ID
+headers to match UIDs from one server to the next.
 
-=head1 COPYRIGHT
+The data from the database thus generated is used by L<popruxi.pl> todo UIDL mapping.
 
-Copyright (c) 2006 by ETH Zurich. All rights reserved.
+The script can be run multiple times and will add new messages as it sees them.
+
+=head2 House keeping
+
+Messages not present on the new server will be evicted from the database.
+Whenever the script is run.  To make sure no old messages creep back in, you
+may want to only specify the C<--new*> attributes and none of the C<--old*> ones.
 
 =head1 LICENSE
 
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
+This program is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your option)
+any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+more details.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+You should have received a copy of the GNU General Public License along with
+this program.  If not, see L<http://www.gnu.org/licenses/>.
 
 =head1 AUTHOR
 
-S<David Schweikert E<lt>dws@ee.ethz.chE<gt>>
+S<Tobias Oetiker E<lt>tobi@oetiker.chE<gt>>
 
 =head1 HISTORY
 
- 2006-XX-XX ds Initial Version
+ 2014-03-10 to Initial Version
 
 =cut
-
-# Emacs Configuration
-#
-# Local Variables:
-# mode: cperl
-# eval: (cperl-set-style "PerlStyle")
-# mode: flyspell
-# mode: flyspell-prog
-# End:
-#
-# vi: sw=4 et
