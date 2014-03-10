@@ -18,7 +18,7 @@ sub main {
     my $opt = $popruxi->cfg;
     my @mandatory = (qw(server=s serverport=s listenport=s dbfile=s));
 
-    GetOptions($opt, 'help|h', 'man', 'noaction|no-action|n', @mandatory ) or exit(1);
+    GetOptions($opt, 'logpath=s','loglevel=s', 'help|h', 'man', 'noaction|no-action|n', @mandatory ) or exit(1);
 
     if($opt->{help})     { pod2usage(1) }
     if($opt->{man})      { pod2usage(-exitstatus => 0, -verbose => 2) }
@@ -58,6 +58,8 @@ B<propruxi.pl> [I<options>...]
     --serverport=x  port on upstream pop server
     --listenport=x  on which port should we be listening
     --dbfile=x      where is the uid database
+    --logpath=x     where should the logfile be written to
+    --loglevel=x    debug|info|warn|error|fatal
 
 =head1 DESCRIPTION
 

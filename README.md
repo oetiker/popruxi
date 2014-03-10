@@ -1,43 +1,46 @@
-popruxi.pl
-==========
-pop proxy with uid mapping ability
+Popruxi
+=======
+POP3 proxy with uid mapping ability
 
-SYNOPSIS
+Use Case
 --------
-propruxi.pl [*options*...]
+When migrating POP accounts from one server to another one, the unique IDs
+of the POP messages do normally change.  For people who use their POP
+accounts with 'leave on server' active this will cause all existing messages
+to suddenly appear a second time in thier inbox.
 
-    --man           show man-page and exit
-    --help          display this help and exit
-    --version       output version information and exit
-    --server=x      upstream pop server
-    --serverport=x  port on upstream pop server
-    --listenport=x  on which port should we be listening
-    --dbfile=x      where is the uid database
+The reason for this is, that POP clients use the command UIDL to retreive a
+list of unique ids for all the messages stored on the server.  By comparing
+this list with the list for the messages already received, they decide which
+messages they have to download from the POP server.
 
-DESCRIPTION
------------
-When migrating a pop server to a new host, the message uids will normally
-change. This causes all clients to re-download all their mail after the
-change.
+When switching server products, the UIDL command will normally return all
+new unique ids for the existing messages.
 
-This proxy is able to replace message uids as reported by the "UIDL" command
-based on a list stored in an sqlite database.
+With Popruxi the list of UIDs can be synced from the old server. The POP
+proxy service will then on the fly replace the unique ids from the new
+server with ids from the old server.
 
-COPYRIGHT
----------
-Copyright (c) 2014 by OETIKER+PARTNER AG. All rights reserved.
 
-LICENSE
--------
-This program is free software: you can redistribute it and/or modify it
-under the terms of the GNU General Public License as published by the Free
-Software Foundation, either version 3 of the License, or (at your option)
-any later version.
+Installation
+------------
 
-This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
-more details.
+    $ cd /opt
+    $ git clone https://github.com/oetiker/popruxi
+    $ cd popruxi
+    $ ./setup/build-perl-modules.sh
 
-You should have received a copy of the GNU General Public License along with
-this program. If not, see <http://www.gnu.org/licenses/>.
+Usage
+-----
+
+First you have to sync the accounts you have migrated
+
+   $ ./bin/uidmatcher.pl --olduser xxx --oldserver old.xxx.yyy --oldpass=sf83j \
+     --newserver new.xxx.yyy --newuser xxx --newpass asfoilkjhasf \
+     --dbfile /opt/popruxi/uidmap.db
+    
+Second you can run the pop proxy server
+
+   $ ./bin/popruxy.pl --server new.xxx.yyy --dbfile /opt/popruxi/uidmap.db
+
+q
