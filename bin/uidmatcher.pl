@@ -20,9 +20,9 @@ my %opt = ();
 # main loop
 sub main()
 {
-    my @mandatory = (qw(olduser=s oldpass=s oldserver=s newuser=s  newpass=s newserver=s dbfile=s));
+    my @mandatory = (qw(newuser=s  newpass=s newserver=s dbfile=s));
 
-    GetOptions(\%opt, 'help|h', 'man', 'noaction|no-action|n', @mandatory ) or exit(1);
+    GetOptions(\%opt, qw(help|h man noaction|no-action|n olduser=s oldpass=s oldserver=s), @mandatory ) or exit(1);
     if($opt{help})     { pod2usage(1) }
     if($opt{man})      { pod2usage(-exitstatus => 0, -verbose => 2) }
     if($opt{noaction}) { die "ERROR: don't know how to \"no-action\".\n" }
@@ -159,15 +159,20 @@ sub getUidlMap {
             $uidmap->{$type}{$uid}=$hash;
         }
     }
+    $dbh->commit;
+
     if ($type eq 'new'){
-        print STDERR "* Cleaning uidmap database";
+        $dbh->begin_work;    
+        print STDERR "* Cleaning uidmap database ";
         # remove uids that are no longer present on the new server
         my $del = $dbh->prepare('DELETE FROM uidmap WHERE uid_new = ?');        
-        for my $uid (sort keys %{$uidmap->{new}}){
-            $del->execute($uid) unless $currentUid{$uid};
+        for my $uid (keys %{$uidmap->{new}}){
+            print STDERR ".";
+            $del->execute($uid) if not $currentUid{$uid};
         }           
+        print STDERR "\n";
+        $dbh->commit;
     }
-    $dbh->commit;
 }
 
 main;
