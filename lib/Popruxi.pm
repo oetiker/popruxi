@@ -1,7 +1,7 @@
 package Popruxi;
 
 use Mojo::Base -base;
-use Popruxi::Server;
+use Popruxi::Proxy;
 
 use Mojo::IOLoop;
 
@@ -22,7 +22,7 @@ has cfg => sub {
 
 sub run {
     my $self = shift;
-    Popruxi::Server->new(app=>$self)->start;
+    Popruxi::Proxy->new(app=>$self)->start;
     # Start event loop
     Mojo::IOLoop->start;
 }

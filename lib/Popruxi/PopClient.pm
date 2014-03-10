@@ -1,4 +1,4 @@
-package Popruxi::Client;
+package Popruxi::PopClient;
 
 use Mojo::Base -base;
 
@@ -43,11 +43,19 @@ sub start {
     return $self;
 };
 
+has sthUidOld => sub {
+    my $self = shift;
+    $self->dbh->prepare('SELECT uid_old FROM uidmap WHERE uid_new = ? AND user = ?');
+};
+
 has reader => sub {
     my $self = shift;
     my $serverBuffer;
     my $state = $self->state;
     my $clientId = $self->clientId;
+    my $dbh = $self->dbh;
+    my $sthUidOld = $self->sthUidOld;
+
     sub {
         my ($serverStream, $chunk) = @_;
         $serverBuffer .= $chunk;
@@ -62,7 +70,18 @@ has reader => sub {
                     $reply .= $line.$nl;
                 }
                 elsif ($line =~ m/^(\d+)\s+(\S+)$/){
-                    $reply .= $1.' '.$2."gugus".$nl;
+                    my $id = $1;
+                    my $uid_new = $2;
+                    # is might be faster to delay the answer and lookup all the uids in one go
+                    # using an array ... 
+                    $reply .= $id.' ';
+                    if (my $uid_old = $dbh->selectrow_array($sthUidOld,{},$uid_new,$state->{USER})){
+                        $reply .= $uid_old;
+                    }
+                    else {
+                        $reply .= $uid_new;
+                    }
+                    $reply .= $nl;
                 }
                 else {
                     $reply .= $line.$nl;  
@@ -125,13 +144,13 @@ __END__
 
 =head1 NAME
 
-Popruxi::Client - pop uid proxy client
+Popruxi::PopClient - pop uid proxy client
 
 =head1 SYNOPSIS
 
-    use Popruxi::Client;
+    use Popruxi::PopClient;
     ...
-    my $client = Popruxi::Client->new(app=>$self->app,clientId=>$clientId);
+    my $client = Popruxi::PopClient->new(app=>$self->app,clientId=>$clientId);
     ...
 
 =head1 DESCRIPTION

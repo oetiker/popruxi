@@ -1,10 +1,10 @@
-package Popruxi::Server;
+package Popruxi::Proxy;
 
 use Mojo::Base -base;
 
 use Mojo::IOLoop;
 use Popruxi::Util qw(eatBuffer);
-use Popruxi::Client;
+use Popruxi::PopClient;
 
 has 'app';
 
@@ -33,7 +33,6 @@ sub userInputHandler {
         for my $line (@$lines){
             if (!$state->{USER} and $line =~ /USER\s+(\S+)/i){
                 $state->{USER}=$1;
-                say "Hello USER '$1'";
             }
             if ($line =~ /^UIDL/i){
                 $state->{EXPECTING_UIDL}=1;
@@ -60,7 +59,7 @@ has connectionHandler => sub {
         my $handle = $clientStream->handle;
         $self->log->info("Connection from ".$handle->peerhost.':'.$handle->peerport);
         # oh hello client ... lets quickly open a connection to the server
-        my $popruxiClient = Popruxi::Client->new(app=>$self->app,clientId=>$clientId)->start;
+        my $popruxiClient = Popruxi::PopClient->new(app=>$self->app,clientId=>$clientId)->start;
         $clientStream->on(read => $self->userInputHandler($popruxiClient));
         $clientStream->on(close => sub {
             $self->log->info("Client quit from ".$handle->peerhost.':'.$handle->peerport);
@@ -87,12 +86,12 @@ __END__
 
 =head1 NAME
 
-Pod::Server - pop proxy server
+Pod::Proxy - pop proxy server
 
 =head1 SYNOPSIS
 
-    use Popruxi::Server;
-    my $popruxi = Popruxi::Server->new(cfg=>\%cfg);
+    use Popruxi::Proxy;
+    my $popruxi = Popruxi::Proxy->new(cfg=>\%cfg);
     my $serverId = $popruxi->id;
     Mojo::IOLoop->run;
 
