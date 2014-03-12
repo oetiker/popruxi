@@ -65,6 +65,11 @@ has connectionHandler => sub {
             $self->log->info("Client quit from ".$handle->peerhost.':'.$handle->peerport);
             Mojo::IOLoop->remove($popruxiClient->id);
         });
+        $clientStream->on(error => sub {
+            my ($stream, $err) = @_;
+            $self->log->info("Client error $err from ".$handle->peerhost.':'.$handle->peerport);
+            Mojo::IOLoop->remove($popruxiClient->id);
+        });
     }
 };
 

@@ -120,6 +120,11 @@ has connectionSetup => sub {
             }
         );
         $serverStream->on( read => $self->reader );
+        $serverStream->on( error => sub {
+            my ($stream, $err) = @_;
+            $self->log->info("Server error $err");
+            Mojo::IOLoop->remove($self->clientId);
+        });
     };
 };
 
