@@ -2,14 +2,15 @@
 
 require 5.014;
 use strict;
+
+use FindBin;
+use lib "$FindBin::Bin/../thirdparty/lib/perl5";
+
 use Getopt::Long 2.25 qw(:config posix_default no_ignore_case);
 use Pod::Usage 1.14;
 use Term::ReadKey;
 use Digest::SHA qw(hmac_sha256_hex);
 use Data::Dumper;
-
-use FindBin;
-use lib "$FindBin::Bin/../thirdparty/lib/perl5";
 
 use DBI;
 use Mail::POP3Client;
