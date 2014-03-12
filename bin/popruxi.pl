@@ -1,13 +1,12 @@
 #!/usr/bin/env perl
 
-use Getopt::Long 2.25 qw(:config posix_default no_ignore_case);
-use Pod::Usage 1.14;
-use Term::ReadKey;
-
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 use lib "$FindBin::Bin/../thirdparty/lib/perl5";
 
+use Getopt::Long 2.25 qw(:config posix_default no_ignore_case);
+use Pod::Usage 1.14;
+use Term::ReadKey;
 
 use Mojo::Base -strict;
 use Popruxi;
