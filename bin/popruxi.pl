@@ -35,7 +35,13 @@ sub main {
             }        
         }
     }
+
+    if (not -r $opt->{dbfile}){
+        die "ERROR: uid-db $opt->{dbfile} not found please create the db first using uidmatcher.pl\n";
+    }
+
     say "Waiting for connections on port ".$popruxi->cfg->{listenport};
+
     $popruxi->run;
 }
 

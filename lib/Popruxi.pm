@@ -16,7 +16,7 @@ has log => sub {
 has cfg => sub {
     {
         listenport => 3110,
-        serverport => 110
+        serverport => 110,
     }  
 };
 
