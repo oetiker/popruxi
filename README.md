@@ -41,6 +41,6 @@ First you have to sync the accounts you have migrated
     
 Second you can run the pop proxy server
 
-    $ ./bin/popruxy.pl --server new.xxx.yyy --dbfile /opt/popruxi/uidmap.db
+    $ ./bin/popruxi.pl --server new.xxx.yyy --dbfile /opt/popruxi/uidmap.db
 
 
