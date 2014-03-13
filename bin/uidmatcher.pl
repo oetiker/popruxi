@@ -12,6 +12,9 @@ use Term::ReadKey;
 use Digest::SHA qw(hmac_sha256_hex);
 use Data::Dumper;
 
+use File::Basename;
+use File::Path qw(mkpath);
+
 use DBI;
 use Mail::POP3Client;
 
@@ -93,6 +96,12 @@ sub main()
 sub getDbh {
     my $db = $opt{dbfile};
     my $dbExists = -s $db;
+
+    my $dbPathExists = -d dirname($db);
+    if (not $dbPathExists) {
+        mkpath(dirname($db));
+    }
+
     my $dbh = DBI->connect_cached('dbi:SQLite:dbname='.$db,'','',{
         RaiseError => 1,
         PrintError => 0,
