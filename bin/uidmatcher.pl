@@ -23,7 +23,7 @@ sub main()
 {
     my @mandatory = (qw(newuser=s  newpass=s newserver=s dbfile=s));
 
-    GetOptions(\%opt, qw(help|h man noaction|no-action|n olduser=s oldpass=s oldserver=s), @mandatory ) or exit(1);
+    GetOptions(\%opt, qw(help|h man noaction|no-action|n olduser=s oldpass=s oldserver=s ssl), @mandatory ) or exit(1);
     if($opt{help})     { pod2usage(1) }
     if($opt{man})      { pod2usage(-exitstatus => 0, -verbose => 2) }
     if($opt{noaction}) { die "ERROR: don't know how to \"no-action\".\n" }
@@ -121,11 +121,13 @@ sub getUidlMap {
     my $uidmap = shift;
     my $type = shift;
 
+    my $ssl = $opt{ssl} ? 1 : 0;
+
     my $pop = Mail::POP3Client->new( 
         HOST  => $opt{$type.'server'},
         USER => $opt{$type.'user'},
         PASSWORD => $opt{$type.'pass'},
-        USESSL => 1,
+        USESSL => $ssl,
         AUTH_MODE => 'PASS',
     );
     if ($pop->Message !~ /OK/){
@@ -198,6 +200,7 @@ B<uidmatcher.pl> [I<options>...]
      --newpass=s     password on the new server
      --newserver=s   new server address
      --dbfile=s      db file to store the mapping
+     --ssl           use ssl and ssl ports for pop
 
 =head1 DESCRIPTION
 
