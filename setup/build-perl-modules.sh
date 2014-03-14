@@ -9,6 +9,7 @@ for module in \
   DBI \
   DBD::SQLite \
   Mojolicious \
+  Net::Sieve \
 ; do
   perlmodule $module
 done
