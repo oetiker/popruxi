@@ -5,6 +5,7 @@ use warnings;
 use Getopt::Long 2.25 qw(:config posix_default no_ignore_case);
 use Pod::Usage 1.14;
 use Encode;
+use autodie;
 
 # main loop
 my %opt = (
@@ -25,14 +26,42 @@ sub main()
     if (not @ARGV){
         pod2usage(1);
     }
+    print getAliases(@ARGV);
     for my $user (@ARGV){
         print c2z($user);
     }
-
 }
 
 
 main;
+
+sub getAliases {
+    my %uid = (map { $_ => 1 } @_);
+    my $out = '';
+    open my $ldif, '<', "$opt{root}/all_aliases_vaddress.txt";
+    my $user;
+    while (<$ldif>){
+        chomp;
+        /^dn:\s*uid=([^,]+),dc=hin,dc=ch/ && do {
+            $user = $uid{$1} ? $1 : undef;
+            next;
+        };
+        $user || next;
+        /alias:\s*(\S+)/ && do {
+            $out .= "removeAccountAlias $user $1\@hin.ch\n";
+            $out .= "addAccountAlias $user $1\@hin.ch\n";
+            next;
+        };
+        /vaddress:\s*(\S+)/ && do {
+            $out .= "removeAccountAlias $user $1\n";
+            $out .= "addAccountAlias $user $1\n";
+            next;
+        };
+    }
+    return  $out;
+}
+       
+
 
 sub c2z {
     my $user = shift;
@@ -153,6 +182,7 @@ provisioning tool. The output of this script can be used like this:
 The script expects the cyrus config files in the following locations.
 The root directory is the current directory by default (confiruable using the --root=x option).
 
+ $root/all_aliases_vaddress.txt
  $root/notify/$fl/$user.addr
  $root/notify/$fl/$user.txt
  $root/quota/$fl/user.$user
@@ -164,7 +194,7 @@ This program works only for sieve scripts that follow a specific pattern.
 
 =head1 COPYRIGHT
 
-Copyright (c) 20014 by OETIKER+PARTNER AG. All rights reserved.
+Copyright (c) 2014 by OETIKER+PARTNER AG. All rights reserved.
 
 =head1 LICENSE
 
