@@ -9,7 +9,7 @@ use autodie;
 
 # main loop
 my %opt = (
-    quota => 102400000,
+    quota => 512000000,
     days => 7,
     root => '.'
 );
@@ -40,19 +40,23 @@ sub getAliases {
     my $out = '';
     open my $ldif, '<', "$opt{root}/all_aliases_vaddress.txt";
     my $user;
+    my $count=0;
     while (<$ldif>){
         chomp;
         /^dn:\s*uid=([^,]+),dc=hin,dc=ch/ && do {
             $user = $uid{$1} ? $1 : undef;
+            $count = 0;
             next;
         };
         $user || next;
         /alias:\s*(\S+)/ && do {
+            warn "[$user] extra alias $1\n" if $count++ > 1;
             $out .= "removeAccountAlias $user $1\@hin.ch\n";
             $out .= "addAccountAlias $user $1\@hin.ch\n";
             next;
         };
         /vaddress:\s*(\S+)/ && do {
+            warn "[$user] extra alias $1\n" if $count++ > 1;
             $out .= "removeAccountAlias $user $1\n";
             $out .= "addAccountAlias $user $1\n";
             next;
@@ -78,7 +82,7 @@ sub c2z {
         notify_addr => sub {
             my $list = shift;
             if (scalar @$list > 1){
-                warn "Only one notification address allowed ($user)!\n";                            
+                warn "[$user] extra notification address $list->[1]\n";                            
             }        
             return  "ma $user zimbraPrefNewMailNotificationEnabled true\n"
                   . "ma $user zimbraPrefNewMailNotificationAddress $list->[0]\n";
