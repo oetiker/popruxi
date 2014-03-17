@@ -50,14 +50,16 @@ sub getAliases {
         };
         $user || next;
         /alias:\s*(\S+)/ && do {
+            if ($user eq $1){
+                warn "[$user] aliases itself. skipping\n";
+                next;
+            }
             warn "[$user] extra alias $1\n" if $count++ > 1;
-            $out .= "removeAccountAlias $user\@hin.ch $1\@hin.ch\n";
             $out .= "addAccountAlias $user\@hin.ch $1\@hin.ch\n";
             next;
         };
         /vaddress:\s*(\S+)/ && do {
             warn "[$user] extra alias $1\n" if $count++ > 1;
-            $out .= "removeAccountAlias $user\@hin.ch $1\n";
             $out .= "addAccountAlias $user\@hin.ch $1\n";
             next;
         };
