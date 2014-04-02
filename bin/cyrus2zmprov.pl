@@ -11,14 +11,15 @@ use autodie;
 my %opt = (
     quota => 512000000,
     days => 7,
-    root => '.'
+    root => '.',
+    domain => 'hin.ch',
 );
 
 sub main()
 {
     # parse options
 
-    GetOptions(\%opt, 'help|h', 'man', 'noaction|no-action|n',
+    GetOptions(\%opt, 'domain=s', 'help|h', 'man', 'noaction|no-action|n',
         'verbose|v','root=s','quota=s','days=s') or exit(1);
     if ($opt{help})     { pod2usage(1) }
     if ($opt{man})      { pod2usage(-exitstatus => 0, -verbose => 2) }
@@ -26,7 +27,7 @@ sub main()
     if (not @ARGV){
         pod2usage(1);
     }
-    print getAliases(@ARGV);
+    # print getAliases(@ARGV);
     for my $user (@ARGV){
         print c2z($user);
     }
@@ -55,12 +56,12 @@ sub getAliases {
                 next;
             }
             warn "[$user] extra alias $1\n" if $count++ > 1;
-            $out .= "addAccountAlias $user\@hin.ch $1\@hin.ch\n";
+            $out .= "addAccountAlias $user\@$opt{domain} $1\@$opt{domain}\n";
             next;
         };
         /vaddress:\s*(\S+)/ && do {
             warn "[$user] extra alias $1\n" if $count++ > 1;
-            $out .= "addAccountAlias $user\@hin.ch $1\n";
+            $out .= "addAccountAlias $user\@$opt{domain} $1\n";
             next;
         };
     }
@@ -70,7 +71,7 @@ sub getAliases {
 
 
 sub c2z {
-    my $user = shift;
+    my ($user,$alias) = split /=/, shift,2;
     my $fl = substr($user,0,1);
     my $root = $opt{root};
     my %files = (
@@ -86,19 +87,19 @@ sub c2z {
             if (scalar @$list > 1){
                 warn "[$user] extra notification address $list->[1]\n";                            
             }        
-            return  "ma $user zimbraPrefNewMailNotificationEnabled true\n"
-                  . "ma $user zimbraPrefNewMailNotificationAddress $list->[0]\n";
+            return  "modifyAccount $user zimbraPrefNewMailNotificationEnabled TRUE\n"
+                  . "modifyAccount $user zimbraPrefNewMailNotificationAddress $list->[0]\n";
         },
         notify_msg => sub {
             my $msg = shift;
             my $message = join '${NEWLINE}', @$msg;
             $message =~ s{"}{\"}g;
             $message =~ s{\n}{\${NEWLINE}}g;
-            return  decode("iso-8859-1","ma $user zimbraNewMailNotificationBody \"$message\"\n");
+            return  decode("iso-8859-1","modifyAccount $user zimbraNewMailNotificationBody \"$message\"\n");
         },
         quota => sub {
             my $quota = shift->[1]*1024;         
-            return $quota != $opt{quota} ? "ma $user zimbraMailQuota ".($quota)."\n" : '';
+            return $quota != $opt{quota} ? "modifyAccount $user zimbraMailQuota ".($quota)."\n" : '';
         },
         sieve => sub {
             my $msg = shift;
@@ -119,8 +120,8 @@ sub c2z {
                 $vacationMode > 0 && /^\.$/ && do {
                     $vacationMsg =~ s{"}{\"}g;
                     $vacationMsg =~ s{\n}{\\n}g;
-                    $cmd .= "ma $user zimbraPrefOutOfOfficeReplyEnabled true\n";
-                    $cmd .= "ma $user zimbraPrefOutOfOfficeReply \"".decode($vacationEncoding,$vacationMsg)."\"\n";
+                    $cmd .= "modifyAccount $user zimbraPrefOutOfOfficeReplyEnabled TRUE\n";
+                    $cmd .= "modifyAccount $user zimbraPrefOutOfOfficeReply \"".decode($vacationEncoding,$vacationMsg)."\"\n";
                     $vacationMode = 0;
                     next;
                 };
@@ -131,13 +132,13 @@ sub c2z {
                 /^redirect\s+"(.+?)";$/ && do {
                     my $plus = $first ? '' : '+';
                     $first = 0;
-                    $cmd .= "ma $user ${plus}zimbraMailForwardingAddress $1\n";
+                    $cmd .= "modifyAccount $user ${plus}zimbraMailForwardingAddress $1\n";
                     next;
                 };
                 /^vacation\s+:days\s+(\d+).+text:$/ && do {
                     $vacationMode = 1;
                     next if $1 == $opt{days};
-                    $cmd .= "ma $user zimbraPrefOutOfOfficeCacheDuration ${1}d\n";
+                    $cmd .= "modifyAccount $user zimbraPrefOutOfOfficeCacheDuration ${1}d\n";
                     next;
                 };                        
             }
@@ -146,6 +147,10 @@ sub c2z {
     );
 
     my $cmd = '';
+
+    if ($alias){
+        $cmd .= "addAccountAlias $user\@$opt{domain} $alias\n";
+    }
 
     for my $key (keys %files){
         my $file = $files{$key};
@@ -170,13 +175,14 @@ cyrus2zmprov.pl - create zmprov lines based on hin cyrus config files
 
 =head1 SYNOPSIS
 
-B<cyrus2zmprov.pl> [I<options>...] I<user> [I<user> ...] > outupt.cfg
+B<cyrus2zmprov.pl> [I<options>...] I<user>[=I<alias@hin.ch>] [I<user>[=I<alias@hin.ch>] ...] > outupt.cfg
 
      --man           show man-page and exit
  -h, --help          display this help and exit
      --root=dir      where are the cyrus config files
      --days=x        default frequency for vacation message cache
      --quota=x       default mailquota in bytes
+     --domain=hin.ch local domain (set to hin.ch by default)
 
 =head1 DESCRIPTION
 
@@ -188,7 +194,6 @@ provisioning tool. The output of this script can be used like this:
 The script expects the cyrus config files in the following locations.
 The root directory is the current directory by default (confiruable using the --root=x option).
 
- $root/all_aliases_vaddress.txt
  $root/notify/$fl/$user.addr
  $root/notify/$fl/$user.txt
  $root/quota/$fl/user.$user
