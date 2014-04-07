@@ -1,0 +1,101 @@
+#!/bin/bash
+#
+#       /etc/rc.d/init.d/popruxi
+#
+# Starts the popruxi daemon
+#
+# chkconfig: 2345 99 35
+# description: Popruxi Server
+# processname: dovecot
+# config: /etc/sysconfig/popruxi
+# pidfile: /var/run/popruxi.pid
+
+### BEGIN INIT INFO
+# Provides: dovecot
+# Required-Start: $dovecot
+# Required-Stop: $dovecot
+# Default-Start: 2 3 4 5 
+# Default-Stop: 0 1 6
+# Short-Description: start and stop popruxi proxy
+# Description: Popruxi is a POP UIDL proxy for for Linux/UNIX-like systems.
+### END INIT INFO
+
+# Source function library.
+
+. /etc/rc.d/init.d/functions
+
+if [ -f /etc/sysconfig/popruxi ]; then
+    . /etc/sysconfig/popruxi
+fi
+
+RETVAL=0
+prog=propruxi
+exec="/opt/oss/popruxi/bin/popruxi.sh"
+pidfile="/var/run/popruxi.pid"
+lockfile="/var/lock/subsys/popruxi"
+
+start() {
+        [ -x $exec ] || exit 5
+        [ -f $config ] || exit 6
+
+        echo -n $"Starting $prog: "
+        daemon --pidfile=${pidfile} $exec $OPTIONS
+        RETVAL=$?
+        [ $RETVAL -eq 0 ] && touch  $lockfile
+        echo
+}
+
+stop() {
+        echo -n $"Stopping $prog: "
+        killproc -p $pidfile $exec
+        RETVAL=$?
+        [ $RETVAL -eq 0 ] && rm -f $lockfile
+        echo
+}
+
+restart() {
+    stop
+    start
+}
+
+reload() {
+    restart
+}
+
+force_reload() {
+    restart
+}
+
+
+
+
+#
+#       See how we were called.
+#
+case "$1" in
+  start)
+        start
+        ;;
+  stop)
+        stop
+        ;;
+  reload)
+        reload
+        ;;
+  force-reload|restart)
+        stop
+        sleep 1
+        start
+        RETVAL=$?
+        ;;
+  status)
+        status -p $pidfile $exec
+        RETVAL=$?
+        ;;
+  *)
+        echo $"Usage: $0 {start|stop|restart|reload|force-reload|status}"
+        RETVAL=2
+        [ "$1" = 'usage' ] && RETVAL=0
+esac
+
+exit $RETVAL
