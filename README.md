@@ -51,9 +51,9 @@ Deployment
 
 An init.d and sysconfig configuration file is located in setup/rhel
 
-   $ cp setup/rhel/rc.d/init.d/popruxi   /etc/rc.d/init.d/
-   $ chmod 755 /etc/rc.d/init.d/popruxi
-   $ cp setup/rhel/sysconfig/popruxi     /etc/sysconfig/
+    $ cp setup/rhel/rc.d/init.d/popruxi   /etc/rc.d/init.d/
+    $ chmod 755 /etc/rc.d/init.d/popruxi
+    $ cp setup/rhel/sysconfig/popruxi     /etc/sysconfig/
 
-   $ chkconfig  --add popruxi
-   $ service popruxi restart
+    $ chkconfig  --add popruxi
+    $ service popruxi restart
