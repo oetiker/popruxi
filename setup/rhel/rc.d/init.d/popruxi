@@ -30,16 +30,23 @@ fi
 
 RETVAL=0
 prog=propruxi
-exec="/opt/oss/popruxi/bin/popruxi.sh"
+exec="/opt/oss/popruxi/bin/popruxi.pl"
 pidfile="/var/run/popruxi.pid"
 lockfile="/var/lock/subsys/popruxi"
 
+POPRUXI_SERVER=${POPRUXI_SERVER:-localhost}
+POPRUXI_SERVERPORT=${POPRUXI_SERVERPORT:-110}
+POPRUXI_LISTENPORT=${POPRUXI_LISTENPORT:-10110}
+POPRUXI_DBFILE=${POPRUXI_DBFILE:-../var/uidmatcher.db}
+POPRUXI_USER=${POPRUXI_USER:-mailsync}
+
+OPTIONS="--server=$POPRUXI_SERVER --serverport=$POPRUXI_SERVERPORT --listenport=$POPRUXI_LISTENPORT --dbfile=$POPRUXI_DBFILE"
+
+
 start() {
         [ -x $exec ] || exit 5
-        [ -f $config ] || exit 6
-
         echo -n $"Starting $prog: "
-        daemon --pidfile=${pidfile} $exec $OPTIONS
+        daemon --user=${POPRUXI_USER} --pidfile=${pidfile} $exec $OPTIONS
         RETVAL=$?
         [ $RETVAL -eq 0 ] && touch  $lockfile
         echo
