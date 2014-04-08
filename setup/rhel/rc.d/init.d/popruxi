@@ -40,8 +40,7 @@ POPRUXI_LISTENPORT=${POPRUXI_LISTENPORT:-10110}
 POPRUXI_DBFILE=${POPRUXI_DBFILE:-../var/uidmatcher.db}
 POPRUXI_USER=${POPRUXI_USER:-mailsync}
 
-OPTIONS="--server=$POPRUXI_SERVER --serverport=$POPRUXI_SERVERPORT --listenport=$POPRUXI_LISTENPORT --dbfile=$POPRUXI_DBFILE"
-
+OPTIONS="--server=$POPRUXI_SERVER --serverport=$POPRUXI_SERVERPORT --listenport=$POPRUXI_LISTENPORT --dbfile=$POPRUXI_DBFILE &"
 
 start() {
         [ -x $exec ] || exit 5
