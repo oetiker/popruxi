@@ -1,0 +1,9 @@
+/var/log/popruxi/popruxi.log
+{
+    sharedscripts
+    daily
+    missingok
+    rotate 7
+    compress
+    endscript
+}

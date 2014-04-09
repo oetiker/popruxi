@@ -15,5 +15,8 @@ POPRUXI_DBFILE=/opt/oss/popruxi/var/uidmatcher.db
 # Running User
 POPRUXI_USER=mailsync
 
+# Logfile directory
+POPRUXI_LOGDIR=/var/log/popruxi
+
 # Change Path
 PATH=/opt/oss/perl/bin:$PATH:$HOME/bin

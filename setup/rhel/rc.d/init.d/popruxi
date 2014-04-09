@@ -30,8 +30,9 @@ fi
 
 RETVAL=0
 prog=propruxi
-exec="/opt/oss/popruxi/bin/popruxi.pl"
-pidfile="/var/run/popruxi.pid"
+executable="/opt/oss/popruxi/bin/popruxi.pl"
+pidfile="/var/run/popruxi.pl.pid"
+pid=`test -f $pidfile && cat $pidfile`
 lockfile="/var/lock/subsys/popruxi"
 
 POPRUXI_SERVER=${POPRUXI_SERVER:-localhost}
@@ -39,24 +40,39 @@ POPRUXI_SERVERPORT=${POPRUXI_SERVERPORT:-110}
 POPRUXI_LISTENPORT=${POPRUXI_LISTENPORT:-10110}
 POPRUXI_DBFILE=${POPRUXI_DBFILE:-../var/uidmatcher.db}
 POPRUXI_USER=${POPRUXI_USER:-mailsync}
+POPRUXI_LOGDIR=${POPRUXI_LOGDIR:-/var/log/popruxi}
 
-OPTIONS="--server=$POPRUXI_SERVER --serverport=$POPRUXI_SERVERPORT --listenport=$POPRUXI_LISTENPORT --dbfile=$POPRUXI_DBFILE &"
+OPTIONS="--server=$POPRUXI_SERVER --serverport=$POPRUXI_SERVERPORT --listenport=$POPRUXI_LISTENPORT --dbfile=$POPRUXI_DBFILE --logpath=$POPRUXI_LOGDIR/popruxi.log --loglevel=debug &"
 
 start() {
-        [ -x $exec ] || exit 5
+    [ -x $exec ] || exit 5
+    pidofproc -p $pidfile $executable
+    status=$?
+    if [ $status -eq 0 ]; then
+        echo "popruxi service is already running with pid $pid"
+        exit 1
+    else
         echo -n $"Starting $prog: "
-        daemon --user=${POPRUXI_USER} --pidfile=${pidfile} $exec $OPTIONS
+        [ -d $POPRUXI_LOGDIR ] || install --directory=$POPRUXI_LOGDIR --owner=$POPRUXI_USER || exit 6
+        daemon --user=${POPRUXI_USER} $executable $OPTIONS
         RETVAL=$?
-        [ $RETVAL -eq 0 ] && touch  $lockfile
         echo
+        [ $RETVAL -eq 0 ] && touch $lockfile
+        PID=`ps -ef | grep $executable | cut -d" " -f2`
+        PID=`echo $PID | cut -d" " -f2`
+        [ -n $PID ] && echo $PID > $pidfile
+    fi
 }
 
 stop() {
-        echo -n $"Stopping $prog: "
-        killproc -p $pidfile $exec
-        RETVAL=$?
-        [ $RETVAL -eq 0 ] && rm -f $lockfile
-        echo
+    echo -n $"Stopping $prog: "
+    killproc $executable
+    RETVAL=$?
+    echo
+    if [ $RETVAL -eq 0 ]; then
+        rm -f $lockfile
+        rm -f $pidfile
+    fi
 }
 
 restart() {
@@ -71,8 +87,6 @@ reload() {
 force_reload() {
     restart
 }
-
-
 
 
 #
@@ -95,7 +109,7 @@ case "$1" in
         RETVAL=$?
         ;;
   status)
-        status -p $pidfile $exec
+        status -p $pidfile $executable
         RETVAL=$?
         ;;
   *)
