@@ -46,6 +46,9 @@ OPTIONS="--server=$POPRUXI_SERVER --serverport=$POPRUXI_SERVERPORT --listenport=
 
 start() {
     [ -x $exec ] || exit 5
+    POPRUXI_DBFILE_DIR=`dirname $POPRUXI_DBFILE`
+    [ -d $POPRUXI_DBFILE_DIR ] || install --directory $POPRUXI_DBFILE_DIR --owner=$POPRUXI_USER || exit 7
+    [ -f $POPRUXI_DBFILE ] || touch $POPRUXI_DBFILE && chown $POPRUXI_USER: $POPRUXI_DBFILE  || exit 8
     pidofproc -p $pidfile $executable
     status=$?
     if [ $status -eq 0 ]; then
