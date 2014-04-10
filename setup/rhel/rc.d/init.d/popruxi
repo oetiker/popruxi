@@ -53,7 +53,7 @@ start() {
         exit 1
     else
         echo -n $"Starting $prog: "
-        [ -d $POPRUXI_LOGDIR ] || install --directory=$POPRUXI_LOGDIR --owner=$POPRUXI_USER || exit 6
+        [ -d $POPRUXI_LOGDIR ] || install --directory $POPRUXI_LOGDIR --owner=$POPRUXI_USER || exit 6
         daemon --user=${POPRUXI_USER} $executable $OPTIONS
         RETVAL=$?
         echo
