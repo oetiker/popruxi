@@ -44,3 +44,17 @@ Second you can run the pop proxy server
     $ ./bin/popruxi.pl --server new.xxx.yyy --dbfile /opt/popruxi/uidmap.db
 
 
+Deployment
+----------
+
+### RHEL
+
+An init.d and sysconfig configuration file is located in setup/rhel
+
+    $ cp setup/rhel/rc.d/init.d/popruxi   /etc/rc.d/init.d/
+    $ chmod 755 /etc/rc.d/init.d/popruxi
+    $ cp setup/rhel/sysconfig/popruxi     /etc/sysconfig/
+    $ cp setup/rhel/logrotate.d/popruxi   /etc/logrotate.d/
+
+    $ chkconfig  --add popruxi
+    $ service popruxi restart

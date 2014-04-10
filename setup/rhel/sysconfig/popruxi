@@ -1,0 +1,22 @@
+# The POPUXI Configuration Variables
+
+# POP3 server to communicate with
+POPRUXI_SERVER=localhost
+
+# POP3 server port to communicate with
+POPRUXI_SERVERPORT=110
+
+# listen port of popruxi
+POPRUXI_LISTENPORT=10110
+
+# uidlmapper db file
+POPRUXI_DBFILE=/opt/oss/popruxi/var/uidmatcher.db
+
+# Running User
+POPRUXI_USER=mailsync
+
+# Logfile directory
+POPRUXI_LOGDIR=/var/log/popruxi
+
+# Change Path
+PATH=/opt/oss/perl/bin:$PATH:$HOME/bin
