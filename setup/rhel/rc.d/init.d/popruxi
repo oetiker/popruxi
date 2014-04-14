@@ -31,6 +31,7 @@ fi
 RETVAL=0
 prog=propruxi
 executable="/opt/oss/popruxi/bin/popruxi.pl"
+emptydbfile="/opt/oss/popruxi/setup/db/empty.db"
 pidfile="/var/run/popruxi.pl.pid"
 pid=`test -f $pidfile && cat $pidfile`
 lockfile="/var/lock/subsys/popruxi"
@@ -46,6 +47,9 @@ OPTIONS="--server=$POPRUXI_SERVER --serverport=$POPRUXI_SERVERPORT --listenport=
 
 start() {
     [ -x $exec ] || exit 5
+    POPRUXI_DBFILE_DIR=`dirname $POPRUXI_DBFILE`
+    [ -d $POPRUXI_DBFILE_DIR ] || install --directory $POPRUXI_DBFILE_DIR --owner=$POPRUXI_USER || exit 7
+    [ -f $POPRUXI_DBFILE ] || cp $emptydbfile $POPRUXI_DBFILE
     pidofproc -p $pidfile $executable
     status=$?
     if [ $status -eq 0 ]; then
@@ -53,7 +57,7 @@ start() {
         exit 1
     else
         echo -n $"Starting $prog: "
-        [ -d $POPRUXI_LOGDIR ] || install --directory=$POPRUXI_LOGDIR --owner=$POPRUXI_USER || exit 6
+        [ -d $POPRUXI_LOGDIR ] || install --directory $POPRUXI_LOGDIR --owner=$POPRUXI_USER || exit 6
         daemon --user=${POPRUXI_USER} $executable $OPTIONS
         RETVAL=$?
         echo
