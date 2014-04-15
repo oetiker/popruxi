@@ -53,9 +53,11 @@ sub main()
     while (my ($uid_new,$uid_old,$hash) = $sth->fetchrow_array){
         $uidmap{new}{$uid_new} = $hash if $uid_new;
         $uidmap{old}{$uid_old} = $hash if $uid_old;
-        $uidmap{old2new}{$uid_old} = $uid_new if $uid_old and $uid_new;
+        if ($uid_old and $uid_new){
+            $uidmap{old2new}{$uid_old} = $uid_new;
+            $uidmap{new2old}{$uid_new} = $uid_old;
+        }
         $uidmap{hash2freenew}{$hash}{$uid_new} = 1 if not $uid_old;
-        $uidmap{hash2freeold}{$hash}{$uid_old} = 1 if not $uid_new;
     }
 
     if ($opt{oldserver}){
@@ -76,17 +78,23 @@ sub main()
         for my $uid_new (keys %{$uidmap{hash2freenew}{$hash}}) {
             print STDERR ".";
             $upd->execute($uid_new,$uid_old,$opt{newuser});
-            delete $uidmap{newnew}{$uid_new};
+            # clean up
+            delete $uidmap{newnew}{$uid_new}; 
+            delete $uidmap{hash2freenew}{$hash}{$uid_new};
+            # and record new matches
+            $uidmap{old2new}{$uid_old} = $uid_new;
+            $uidmap{new2old}{$uid_new} = $uid_old;
             last;
         }
     }
     $dbh->commit;
     print STDERR "\n";
-    # record new hashes
+    # record new hashes just so that we do not have to recalculate them
     print STDERR "* Append new UIDs\n";
     my $ins = $dbh->prepare('INSERT INTO uidmap (uid_new,hash,user) VALUES (?,?,?)');
     $dbh->begin_work;
-    for my $uid_new (keys %{$uidmap{newnew}}){        
+    for my $uid_new (keys %{$uidmap{newnew}}){
+        next if $uidmap{new2old}{$uid_new}; # just to be sure (should actually not happen)
         my $hash = $uidmap{new}{$uid_new};        
         $ins->execute($uid_new,$hash,$opt{newuser});
     } 
@@ -157,7 +165,7 @@ sub getUidlMap {
         my $uid = $uidl[$id] or next;
         $currentUid{$uid} = 1;
 #       print STDERR $id," \r" if $id % 10 == 1;
-        if ( not $uidmap->{$type}{$uid} ){
+        if ( not exists $uidmap->{$type}{$uid} ){
             print STDERR $uid,"\n";
             my @headers = sort grep /^(From|To|Message-Id|Subject|Date):/i, $pop->Head( $id );            
             my  $hash = hmac_sha256_hex(join '\n', @headers );
