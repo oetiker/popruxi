@@ -6,6 +6,8 @@ use Mojo::IOLoop;
 use DBI;
 use Popruxi::Util qw(eatBuffer);
 
+use Scalar::Util 'weaken';
+
 has state => sub {
     {}
 };
@@ -55,7 +57,7 @@ has reader => sub {
     my $clientId = $self->clientId;
     my $dbh = $self->dbh;
     my $sthUidOld = $self->sthUidOld;
-
+    weaken $self;
     sub {
         my ($serverStream, $chunk) = @_;
         $serverBuffer .= $chunk;
@@ -103,6 +105,7 @@ has reader => sub {
 
 has connectionSetup => sub {
     my $self = shift;
+    weaken $self;
     sub {
         my ($loop, $err, $serverStream) = @_;
         # Connection to server failed
@@ -142,6 +145,11 @@ has dbh => sub {
     };
     return $dbh;
 };
+
+sub DESTROY {
+    my $self = shift;
+    $self->log->debug('pop client instance '.$self->host.' destroyed -- good -- no leak');
+}
 
 1;
 
