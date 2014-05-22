@@ -5,4 +5,7 @@
     missingok
     rotate 7
     compress
+    postrotate
+        /etc/init.d/popruxi restart  2> /dev/null || true
+    endscript
 }
