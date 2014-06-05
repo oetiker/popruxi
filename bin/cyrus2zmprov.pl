@@ -15,6 +15,13 @@ my %opt = (
     domain => 'hin.ch',
 );
 
+my %roots = (
+        notify_addr => "srv-www-notify",
+        notify_msg => "srv-www-notify",
+        quota => "var-lib-imap-quota",
+        sieve => "var-lib-sieve",
+);
+
 sub main()
 {
     # parse options
@@ -76,10 +83,10 @@ sub c2z {
     my $fl = substr($user,0,1);
     my $root = $opt{root};
     my %files = (
-        notify_addr => "$root/srv-www-notify/$fl/$user.addr",
-        notify_msg => "$root/srv-www-notify/$fl/$user.txt",
-        quota => "$root/var-lib-imap-quota/$fl/user.$user",
-        sieve => "$root/var-lib-sieve/$fl/$user/filter.sieve.script",
+        notify_addr => "$fl/$user.addr",
+        notify_msg => "$fl/$user.txt",
+        quota => "$fl/user.$user",
+        sieve => "$fl/$user/filter.sieve.script",
     );
 
     my %convert = (
@@ -155,7 +162,9 @@ sub c2z {
     }
 
     for my $key (keys %files){
-        my $file = $files{$key};
+        die "looking for directory $opt{root}/$roots{$key}: $!\n" 
+            if not -d  "$opt{root}/$roots{$key}";
+        my $file = "$opt{root}/$roots{$key}/$files{$key}";
         next unless -r $file;
         my @input;
         open my $fh, '<',$file or die "opening $file: $!\n";
