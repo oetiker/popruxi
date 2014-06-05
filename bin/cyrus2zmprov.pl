@@ -39,7 +39,8 @@ main;
 sub getAliases {
     my %uid = (map { $_ => 1 } @_);
     my $out = '';
-    open my $ldif, '<', "$opt{root}/all_aliases_vaddress.txt";
+    open my $ldif, '<', "$opt{root}/all_aliases_vaddress.txt" 
+        or die "opening $opt{root}/all_aliases_vaddress.txt: $!\n";
     my $user;
     my $count=0;
     while (<$ldif>){
@@ -132,7 +133,8 @@ sub c2z {
                 /^redirect\s+"(.+?)";$/ && do {
                     my $plus = $first ? '' : '+';
                     $first = 0;
-                    $cmd .= "modifyAccount $user ${plus}zimbraMailForwardingAddress $1\n";
+#                   $cmd .= "modifyAccount $user ${plus}zimbraMailForwardingAddress $1\n";
+                    $cmd .= "modifyAccount $user ZimbraPrefMailForwardingAddress $1\n" if $first;
                     next;
                 };
                 /^vacation\s+:days\s+(\d+).+text:$/ && do {
@@ -156,7 +158,7 @@ sub c2z {
         my $file = $files{$key};
         next unless -r $file;
         my @input;
-        open my $fh, '<',$file;
+        open my $fh, '<',$file or die "opening $file: $!\n";
         while (<$fh>){
             s/\r?\n$//;
             push @input,$_;
