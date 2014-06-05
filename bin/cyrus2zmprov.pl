@@ -89,6 +89,7 @@ sub c2z {
         sieve => "$fl/$user/filter.sieve.script",
     );
 
+    
     my %convert = (
         notify_addr => sub {
             my $list = shift;
@@ -112,10 +113,10 @@ sub c2z {
         sieve => sub {
             my $msg = shift;
             my $cmd ='';
-            my $first = 1;
             my $vacationMode = 0;
             my $vacationMsg = '';
             my $vacationEncoding = "iso-8859-1";
+            my @redirects;
             for (@$msg){
                 $vacationMode == 1 && /^Content-type:.+charset=(\S+)/ && do {
                     $vacationEncoding = $1;
@@ -138,10 +139,7 @@ sub c2z {
                     next;
                 };
                 /^redirect\s+"(.+?)";$/ && do {
-                    my $plus = $first ? '' : '+';
-                    $first = 0;
-#                   $cmd .= "modifyAccount $user ${plus}zimbraMailForwardingAddress $1\n";
-                    $cmd .= "modifyAccount $user ZimbraPrefMailForwardingAddress $1\n" if $first;
+                    push @redirects, $1;
                     next;
                 };
                 /^vacation\s+:days\s+(\d+).+text:$/ && do {
@@ -150,6 +148,9 @@ sub c2z {
                     $cmd .= "modifyAccount $user zimbraPrefOutOfOfficeCacheDuration ${1}d\n";
                     next;
                 };                        
+            }
+            if (@redirects){
+                $cmd .= "modifyAccount $user ZimbraPrefMailForwardingAddress ".join(',',@redirects)."\n";
             }
             return $cmd;
         }
