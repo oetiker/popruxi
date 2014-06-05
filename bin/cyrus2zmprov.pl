@@ -76,10 +76,10 @@ sub c2z {
     my $fl = substr($user,0,1);
     my $root = $opt{root};
     my %files = (
-        notify_addr => "$root/notify/$fl/$user.addr",
-        notify_msg => "$root/notify/$fl/$user.txt",
-        quota => "$root/quota/$fl/user.$user",
-        sieve => "$root/sieve/$fl/$user/filter.sieve.script",
+        notify_addr => "$root/srv-www-notify/$fl/$user.addr",
+        notify_msg => "$root/srv-www-notify/$fl/$user.txt",
+        quota => "$root/var-lib-imap-quota/$fl/user.$user",
+        sieve => "$root/var-lib-sieve/$fl/$user/filter.sieve.script",
     );
 
     my %convert = (
@@ -196,10 +196,10 @@ provisioning tool. The output of this script can be used like this:
 The script expects the cyrus config files in the following locations.
 The root directory is the current directory by default (confiruable using the --root=x option).
 
- $root/notify/$fl/$user.addr
- $root/notify/$fl/$user.txt
- $root/quota/$fl/user.$user
- $root/sieve/$fl/$user/filter.sieve.script
+ $root/srv-www-notify/$fl/$user.addr
+ $root/srv-www-notify/$fl/$user.txt
+ $root/var-lib-imap-quota/$fl/user.$user
+ $root/var-lib-sieve/$fl/$user/filter.sieve.script
 
 =head1 BUGS
 
