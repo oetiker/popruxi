@@ -10,7 +10,7 @@ POPRUXI_SERVERPORT=110
 POPRUXI_LISTENPORT=10110
 
 # uidlmapper db file
-POPRUXI_DBFILE=/opt/oss/popruxi/var/uidmatcher.db
+POPRUXI_DBFILE=/opt/oss/popruxi-db/var/uidmatcher.db
 
 # Running User
 POPRUXI_USER=mailsync
