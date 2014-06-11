@@ -106,28 +106,32 @@ has reader => sub {
 has connectionSetup => sub {
     my $self = shift;
     my $log = $self->log;
+    my $clientId = $self->clientId;    
+    my $host = $self->host;
+    my $port = $self->port;
+    my $reader = $self->reader;
     weaken $self;
     sub {
         my ($loop, $err, $serverStream) = @_;
         # Connection to server failed
         if ($err) {
-            $log->error("Connection error for ".$self->host.":".$self->port.": $err");
-            Mojo::IOLoop->remove($self->clientId);
+            $log->error("Connection error for ".$host.":".$port.": $err");
+            Mojo::IOLoop->remove($clientId);
             return;
         }
         # Start forwarding data in both directions
-        $log->info("Forwarding to ".$self->host.":".$self->port);
+        $log->info("Forwarding to ".$host.":".$port);
         # Server closed connection so we end it with the client too
         $serverStream->on(
             close => sub {
-                Mojo::IOLoop->remove($self->clientId);
+                Mojo::IOLoop->remove($clientId);
             }
         );
-        $serverStream->on( read => $self->reader );
+        $serverStream->on( read => $reader );
         $serverStream->on( error => sub {
             my ($stream, $err) = @_;
             $log->info("Server error $err");
-            Mojo::IOLoop->remove($self->clientId);
+            Mojo::IOLoop->remove($clientId);
         });
     };
 };
