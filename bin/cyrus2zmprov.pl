@@ -130,13 +130,13 @@ sub c2z {
                 $vacationMode > 0 && /^\.$/ && do {
                     $vacationMsg =~ s{"}{\"}g;
                     $vacationMsg =~ s{\n}{\\n}g;
-                    $cmd .= "modifyAccount $user zimbraPrefOutOfOfficeReplyEnabled ".($vacationOFF ? "FALSE" : "TRUE")."\n";
+                    $cmd .= "modifyAccount $user zimbraPrefOutOfOfficeReplyEnabled ".($vacationOff ? "FALSE" : "TRUE")."\n";
                     $cmd .= "modifyAccount $user zimbraPrefOutOfOfficeReply \"".decode($vacationEncoding,$vacationMsg)."\"\n";
                     $vacationMode = 0;
                     next;
                 };
                 $vacationMode == 2 && do {
-                    s/^#// if $vactionOff;
+                    s/^#// if $vacationOff;
                     $vacationMsg .= $_."\n";
                     next;
                 };
