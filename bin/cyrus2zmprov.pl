@@ -115,10 +115,11 @@ sub c2z {
             my $cmd ='';
             my $vacationMode = 0;
             my $vacationMsg = '';
+            my $vacationOff = 0 ;
             my $vacationEncoding = "iso-8859-1";
             my @redirects;
             for (@$msg){
-                $vacationMode == 1 && /^Content-type:.+charset=(\S+)/ && do {
+                $vacationMode == 1 && /^#?Content-type:.+charset=(\S+)/ && do {
                     $vacationEncoding = $1;
                     next;
                 };
@@ -129,12 +130,13 @@ sub c2z {
                 $vacationMode > 0 && /^\.$/ && do {
                     $vacationMsg =~ s{"}{\"}g;
                     $vacationMsg =~ s{\n}{\\n}g;
-                    $cmd .= "modifyAccount $user zimbraPrefOutOfOfficeReplyEnabled TRUE\n";
+                    $cmd .= "modifyAccount $user zimbraPrefOutOfOfficeReplyEnabled ".($vacationOFF ? "FALSE" : "TRUE")."\n";
                     $cmd .= "modifyAccount $user zimbraPrefOutOfOfficeReply \"".decode($vacationEncoding,$vacationMsg)."\"\n";
                     $vacationMode = 0;
                     next;
                 };
                 $vacationMode == 2 && do {
+                    s/^#// if $vactionOff;
                     $vacationMsg .= $_."\n";
                     next;
                 };
@@ -142,10 +144,11 @@ sub c2z {
                     push @redirects, $1;
                     next;
                 };
-                /^vacation\s+:days\s+(\d+).+text:$/ && do {
+                /^(#?)vacation\s+:days\s+(\d+).+text:$/ && do {
                     $vacationMode = 1;
+                    $vacationOff = $1 ? 1 : 0;
                     next if $1 == $opt{days};
-                    $cmd .= "modifyAccount $user zimbraPrefOutOfOfficeCacheDuration ${1}d\n";
+                    $cmd .= "modifyAccount $user zimbraPrefOutOfOfficeCacheDuration ${2}d\n";
                     next;
                 };                        
             }
