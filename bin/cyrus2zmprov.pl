@@ -147,7 +147,7 @@ sub c2z {
                 /^(#?)vacation\s+:days\s+(\d+).+text:$/ && do {
                     $vacationMode = 1;
                     $vacationOff = $1 ? 1 : 0;
-                    next if $1 == $opt{days};
+                    next if $2 == $opt{days};
                     $cmd .= "modifyAccount $user zimbraPrefOutOfOfficeCacheDuration ${2}d\n";
                     next;
                 };                        
