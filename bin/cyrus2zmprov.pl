@@ -65,11 +65,15 @@ sub getAliases {
             }
             warn "[$user] extra alias $1\n" if $count++ > 1;
             $out .= "addAccountAlias $user\@$opt{domain} $1\@$opt{domain}\n";
+            $out .= "modifyAccount $user zimbraPrefFromAddressType sendAs\n";
+            $out .= "modifyAccount $user zimbraPrefFromAddress $user\@$opt{domain}\n";
             next;
         };
         /vaddress:\s*(\S+)/ && do {
             warn "[$user] extra alias $1\n" if $count++ > 1;
             $out .= "addAccountAlias $user\@$opt{domain} $1\n";
+            $out .= "modifyAccount $user zimbraPrefFromAddressType sendAs\n";
+            $out .= "modifyAccount $user zimbraPrefFromAddress $user\@$opt{domain}\n";
             next;
         };
     }
