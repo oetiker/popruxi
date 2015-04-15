@@ -8,7 +8,7 @@ for module in \
   Mail::POP3Client \
   DBI \
   DBD::SQLite \
-  Mojolicious \
+  Mojolicious@6.08 \
 ; do
   perlmodule $module
 done
