@@ -2,6 +2,7 @@ package Popruxi;
 
 use Mojo::Base -base;
 use Popruxi::Proxy;
+use Mojo::Log;
 
 use Mojo::IOLoop;
 
