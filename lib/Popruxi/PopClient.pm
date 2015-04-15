@@ -54,16 +54,19 @@ has reader => sub {
     my $self = shift;
     my $serverBuffer;
     my $state = $self->state;
+    my $user = $state->{USER};
     my $clientId = $self->clientId;
     my $dbh = $self->dbh;
     my $sthUidOld = $self->sthUidOld;
+    my $log = $self->log;
     weaken $self;
-    sub {
+    return sub {
         my ($serverStream, $chunk) = @_;
         $serverBuffer .= $chunk;
         my $reply = '';
         my $lines;
         my $nl;
+        my $mapped = 0;
         ($lines,$nl,$serverBuffer) = eatBuffer($serverBuffer);
         for my $line (@$lines){
             if ($state->{EXPECTING_UIDL}){
@@ -77,8 +80,9 @@ has reader => sub {
                     # is might be faster to delay the answer and lookup all the uids in one go
                     # using an array ... 
                     $reply .= $id.' ';
-                    if (my $uid_old = $dbh->selectrow_array($sthUidOld,{},$uid_new,$state->{USER})){
+                    if (my $uid_old = $dbh->selectrow_array($sthUidOld,{},$uid_new,$user)){
                         $reply .= $uid_old;
+                        $mapped++;
                     }
                     else {
                         $reply .= $uid_new;
@@ -93,11 +97,12 @@ has reader => sub {
                 $reply .= $line.$nl;
             }
         }
+        $log->debug("Mapped $mapped UIDs for User $user") if $mapped;
         if (my $clientStream = Mojo::IOLoop->stream($clientId)){
             $clientStream->write($reply);
         }
         else {
-            $self->log->error("client quit unexpectedly");
+            $log->error("client quit unexpectedly");
             Mojo::IOLoop->remove($clientId);
         }
     }
