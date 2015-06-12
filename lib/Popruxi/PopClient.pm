@@ -54,7 +54,6 @@ has reader => sub {
     my $self = shift;
     my $serverBuffer;
     my $state = $self->state;
-    my $user = $state->{USER};
     my $clientId = $self->clientId;
     my $dbh = $self->dbh;
     my $sthUidOld = $self->sthUidOld;
@@ -68,6 +67,7 @@ has reader => sub {
         my $nl;
         my $mapped = 0;
         ($lines,$nl,$serverBuffer) = eatBuffer($serverBuffer);
+        my $user = $state->{USER};
         for my $line (@$lines){
             if ($state->{EXPECTING_UIDL}){
                 if ($line eq '.'){
@@ -158,7 +158,7 @@ has dbh => sub {
 
 sub DESTROY {
     my $self = shift;
-    $self->log->debug('pop client instance '.$self->host.' destroyed -- good -- no leak');
+    # $self->log->debug('pop client instance '.$self->host.' destroyed -- good -- no leak');
 }
 
 1;
