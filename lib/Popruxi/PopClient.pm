@@ -13,7 +13,7 @@ has state => sub {
     {}
 };
 
-my $DEBUG = 0;
+my $DEBUG = $ENV{POPRUXY_DEBUG};
 
 has 'app';
 

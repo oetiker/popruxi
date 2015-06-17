@@ -6,7 +6,7 @@ use Mojo::IOLoop;
 use Popruxi::Util qw(eatBuffer);
 use Popruxi::PopClient;
 use MIME::Base64;
-my $DEBUG = 0;
+my $DEBUG = $ENV{POPRUXY_DEBUG};
 
 
 has 'app';
