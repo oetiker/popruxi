@@ -31,6 +31,7 @@ sub userInputHandler {
         my $nl;
         ($lines,$nl,$state->{data}) = eatBuffer($state->{data});
         for my $line (@$lines){
+            $self->log->debug("INPUT >$line<");
             if (!$state->{USER} and $line =~ /USER\s+(\S+)/i){
                 $state->{USER}=$1;
             }
