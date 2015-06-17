@@ -68,7 +68,6 @@ has reader => sub {
         my $mapped = 0;
         ($lines,$nl,$serverBuffer) = eatBuffer($serverBuffer);
         my $state = $self->state;
-        $self->log->debug(Dumper $state);
         my $user = $state->{USER};
         for my $line (@$lines){
             if ($state->{EXPECTING_UIDL}){

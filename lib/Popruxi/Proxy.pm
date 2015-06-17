@@ -26,12 +26,13 @@ sub userInputHandler {
     my $state = $popruxiClient->state;
     sub {
         my ($clientStream, $chunk) = @_;
+        $self->log->debug("INPUT CHUNK >$chunk<");
         $state->{data} .= $chunk;
         my $lines;
         my $nl;
         ($lines,$nl,$state->{data}) = eatBuffer($state->{data});
         for my $line (@$lines){
-            $self->log->debug("INPUT >$line<");
+            $self->log->debug("INPUT LINE >$line<");
             if (!$state->{USER} and $line =~ /USER\s+(\S+)/i){
                 $state->{USER}=$1;
             }
