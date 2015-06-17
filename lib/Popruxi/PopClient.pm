@@ -13,6 +13,8 @@ has state => sub {
     {}
 };
 
+my $DEBUG = 0;
+
 has 'app';
 
 has 'clientId';
@@ -82,12 +84,12 @@ has reader => sub {
                     # using an array ... 
                     $reply .= $id.' ';
                     if (my $uid_old = $dbh->selectrow_array($sthUidOld,{},$uid_new,$user)){
-                        $self->log->debug("uid mapping for $user $uid_new -> $uid_old");
+                        $self->log->debug("uid mapping for $user $uid_new -> $uid_old") if $DEBUG;
                         $reply .= $uid_old;
                         $mapped++;
                     }
                     else {
-                        $self->log->debug("uid mapping for $user $uid_new -> no match");
+                        $self->log->debug("uid mapping for $user $uid_new -> no match") if $DEBUG;
                         $reply .= $uid_new;
                     }
                     $reply .= $nl;
@@ -128,7 +130,7 @@ has connectionSetup => sub {
             return;
         }
         # Start forwarding data in both directions
-        $log->debug("Forwarding to ".$host.":".$port);
+        $log->debug("Forwarding to ".$host.":".$port) if $DEBUG;
         # Server closed connection so we end it with the client too
         $serverStream->on(
             close => sub {
@@ -161,7 +163,7 @@ has dbh => sub {
 
 sub DESTROY {
     my $self = shift;
-    $self->log->debug('pop client instance '.$self->host.' destroyed -- good -- no leak');
+    $self->log->debug('pop client instance '.$self->host.' destroyed -- good -- no leak') if $DEBUG;
 }
 
 1;

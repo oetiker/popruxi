@@ -6,6 +6,8 @@ use Mojo::IOLoop;
 use Popruxi::Util qw(eatBuffer);
 use Popruxi::PopClient;
 use MIME::Base64;
+my $DEBUG = 0;
+
 
 has 'app';
 
@@ -66,12 +68,12 @@ has connectionHandler => sub {
         my ($loop, $clientStream, $clientId) = @_;
         my $state = {};
         my $handle = $clientStream->handle;
-        $self->log->debug("Connection from ".$handle->peerhost.':'.$handle->peerport);
+        $self->log->debug("Connection from ".$handle->peerhost.':'.$handle->peerport) if $DEBUG;
         # oh hello client ... lets quickly open a connection to the server
         my $popruxiClient = Popruxi::PopClient->new(app=>$self->app,clientId=>$clientId)->start;
         $clientStream->on(read => $self->userInputHandler($popruxiClient));
         $clientStream->on(close => sub {
-            $self->log->debug("Client quit from ".$handle->peerhost.':'.$handle->peerport);
+            $self->log->debug("Client quit from ".$handle->peerhost.':'.$handle->peerport) if $DEBUG;
             Mojo::IOLoop->remove($popruxiClient->id);
         });
         $clientStream->on(error => sub {
