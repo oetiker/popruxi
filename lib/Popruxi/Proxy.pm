@@ -5,6 +5,7 @@ use Mojo::Base -base;
 use Mojo::IOLoop;
 use Popruxi::Util qw(eatBuffer);
 use Popruxi::PopClient;
+use MIME::Base64;
 
 has 'app';
 
@@ -26,15 +27,21 @@ sub userInputHandler {
     my $state = $popruxiClient->state;
     sub {
         my ($clientStream, $chunk) = @_;
-        $self->log->debug("INPUT CHUNK >$chunk<");
         $state->{data} .= $chunk;
         my $lines;
         my $nl;
         ($lines,$nl,$state->{data}) = eatBuffer($state->{data});
         for my $line (@$lines){
-            $self->log->debug("INPUT LINE >$line<");
             if (!$state->{USER} and $line =~ /USER\s+(\S+)/i){
                 $state->{USER}=$1;
+            }
+            if ($line eq 'AUTH PLAIN'){
+                $state->{AUTHPLAIN} = 1;
+                next;
+            }
+            if  ($state->{AUTHPLAIN}){
+                $state->{USER} = [split /\0/, decode_base64($line)]->[1];
+                $state->{AUTHPLAIN} = 0;
             }
             if ($line =~ /^UIDL/i){
                 $state->{EXPECTING_UIDL}=1;
