@@ -21,7 +21,7 @@ has cfg => sub {
     }  
 };
 
-our $VERSION = '1.12';
+our $VERSION = '1.13';
 
 sub run {
     my $self = shift;
