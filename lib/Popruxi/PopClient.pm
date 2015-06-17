@@ -81,10 +81,12 @@ has reader => sub {
                     # using an array ... 
                     $reply .= $id.' ';
                     if (my $uid_old = $dbh->selectrow_array($sthUidOld,{},$uid_new,$user)){
+                        $self->log->debug("uid mapping for $user $uid_new -> $uid_old");
                         $reply .= $uid_old;
                         $mapped++;
                     }
                     else {
+                        $self->log->debug("uid mapping for $user $uid_new -> no match");
                         $reply .= $uid_new;
                     }
                     $reply .= $nl;
@@ -97,7 +99,7 @@ has reader => sub {
                 $reply .= $line.$nl;
             }
         }
-        $log->debug("Mapped $mapped UIDs for User $user") if $mapped;
+        $log->info("Mapped $mapped UIDs for User $user") if $mapped;
         if (my $clientStream = Mojo::IOLoop->stream($clientId)){
             $clientStream->write($reply);
         }
@@ -125,7 +127,7 @@ has connectionSetup => sub {
             return;
         }
         # Start forwarding data in both directions
-        $log->info("Forwarding to ".$host.":".$port);
+        $log->debug("Forwarding to ".$host.":".$port);
         # Server closed connection so we end it with the client too
         $serverStream->on(
             close => sub {
@@ -135,7 +137,7 @@ has connectionSetup => sub {
         $serverStream->on( read => $reader );
         $serverStream->on( error => sub {
             my ($stream, $err) = @_;
-            $log->info("Server error $err");
+            $log->warn("Server error $err");
             Mojo::IOLoop->remove($clientId);
         });
     };

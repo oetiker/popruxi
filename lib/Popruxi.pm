@@ -25,7 +25,7 @@ our $VERSION = '1.12';
 
 sub run {
     my $self = shift;
-    $self->log->debug('Starting popruxi '.$VERSION);
+    $self->log->info('Starting popruxi '.$VERSION);
     Popruxi::Proxy->new(app=>$self)->start;
     # Start event loop
     Mojo::IOLoop->start;

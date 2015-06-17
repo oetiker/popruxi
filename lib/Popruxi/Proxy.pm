@@ -57,17 +57,17 @@ has connectionHandler => sub {
         my ($loop, $clientStream, $clientId) = @_;
         my $state = {};
         my $handle = $clientStream->handle;
-        $self->log->info("Connection from ".$handle->peerhost.':'.$handle->peerport);
+        $self->log->debug("Connection from ".$handle->peerhost.':'.$handle->peerport);
         # oh hello client ... lets quickly open a connection to the server
         my $popruxiClient = Popruxi::PopClient->new(app=>$self->app,clientId=>$clientId)->start;
         $clientStream->on(read => $self->userInputHandler($popruxiClient));
         $clientStream->on(close => sub {
-            $self->log->info("Client quit from ".$handle->peerhost.':'.$handle->peerport);
+            $self->log->debug("Client quit from ".$handle->peerhost.':'.$handle->peerport);
             Mojo::IOLoop->remove($popruxiClient->id);
         });
         $clientStream->on(error => sub {
             my ($stream, $err) = @_;
-            $self->log->info("Client error $err from ".$handle->peerhost.':'.$handle->peerport);
+            $self->log->warn("Client error $err from ".$handle->peerhost.':'.$handle->peerport);
             Mojo::IOLoop->remove($popruxiClient->id);
         });
     }
